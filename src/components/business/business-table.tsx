@@ -2,6 +2,7 @@
 
 import { Business, ProspectStatus } from '@/types/business';
 import { ProspectStatusBadge } from './prospect-status-badge';
+import { formatWhatsappUrl } from '@/lib/utils/formatters';
 import {
   Phone,
   MessageCircle,
@@ -45,8 +46,7 @@ export function BusinessTable({
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {businesses.map((b) => {
-              const whatsappNumber =
-                b.whatsapp || (b.phone ? b.phone.replace(/\D/g, '') : '');
+              const waUrl = formatWhatsappUrl(b.whatsapp || b.phone);
 
               return (
                 <tr
@@ -152,9 +152,9 @@ export function BusinessTable({
                       )}
 
                       {/* WhatsApp */}
-                      {whatsappNumber && (
+                      {waUrl && (
                         <a
-                          href={`https://wa.me/${whatsappNumber}`}
+                          href={waUrl}
                           target="_blank"
                           rel="noreferrer"
                           title="Abrir no WhatsApp"

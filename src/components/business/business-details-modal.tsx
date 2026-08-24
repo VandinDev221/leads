@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Business, ProspectStatus } from '@/types/business';
 import { ProspectStatusBadge } from './prospect-status-badge';
+import { formatWhatsappUrl } from '@/lib/utils/formatters';
 import {
   X,
   Phone,
@@ -49,7 +50,7 @@ export function BusinessDetailsModal({
     setIsSavingNotes(false);
   };
 
-  const whatsappNumber = business.whatsapp || (business.phone ? business.phone.replace(/\D/g, '') : '');
+  const waUrl = formatWhatsappUrl(business.whatsapp || business.phone);
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -122,9 +123,9 @@ export function BusinessDetailsModal({
                 </a>
               )}
 
-              {whatsappNumber && (
+              {waUrl && (
                 <a
-                  href={`https://wa.me/${whatsappNumber}`}
+                  href={waUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="p-2.5 bg-emerald-600 text-white rounded-xl font-semibold text-xs flex items-center gap-1.5 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 transition-all"

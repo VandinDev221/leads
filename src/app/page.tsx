@@ -36,6 +36,12 @@ export default function SearchPage() {
     setErrorMessage(null);
     setLoadingMessage('Consultando estabelecimentos próximos...');
 
+    const storedProvider = typeof window !== 'undefined' ? localStorage.getItem('leadfinder_provider') : null;
+    const effectiveParams = {
+      ...params,
+      provider: params.provider || (storedProvider as any) || undefined,
+    };
+
     const timer = setTimeout(() => {
       setLoadingMessage('Localizando dados de contato e endereço...');
     }, 2000);
@@ -44,7 +50,7 @@ export default function SearchPage() {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
+        body: JSON.stringify(effectiveParams),
       });
 
       clearTimeout(timer);
@@ -69,7 +75,6 @@ export default function SearchPage() {
   };
 
   const handleUpdateStatus = async (business: Business, newStatus: ProspectStatus) => {
-    // Atualizar estado local imediatamente para responsividade da UI
     const updated = businesses.map((b) =>
       b.externalId === business.externalId ? { ...b, prospectStatus: newStatus } : b
     );
@@ -79,7 +84,6 @@ export default function SearchPage() {
       setSelectedBusiness({ ...selectedBusiness, prospectStatus: newStatus });
     }
 
-    // Persistir no banco via API
     try {
       await fetch('/api/leads', {
         method: 'POST',
@@ -182,10 +186,8 @@ export default function SearchPage() {
       <Navbar title="Encontrar Empresas" subtitle="Localização e prospecção de clientes B2B" />
 
       <main className="p-6 max-w-7xl mx-auto space-y-6">
-        {/* Formulário de Busca */}
         <SearchForm onSearch={handleSearch} isLoading={isLoading} />
 
-        {/* Mensagem de Erro se houver */}
         {errorMessage && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-sm font-medium">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
@@ -193,7 +195,6 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Estado de Carregamento */}
         {isLoading && (
           <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-sm space-y-3">
             <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -204,10 +205,8 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Resultados da Busca */}
         {!isLoading && hasSearched && (
           <div className="space-y-4">
-            {/* Header da Lista de Resultados */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-blue-600" />
@@ -218,7 +217,6 @@ export default function SearchPage() {
               </div>
 
               <div className="flex items-center gap-3">
-                {/* Alternador Lista / Mapa */}
                 <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
                   <button
                     onClick={() => setViewMode('list')}
@@ -244,7 +242,6 @@ export default function SearchPage() {
                   </button>
                 </div>
 
-                {/* Botão Exportar CSV */}
                 <button
                   onClick={handleExportCSV}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/20 flex items-center gap-1.5 transition-all"
@@ -255,7 +252,6 @@ export default function SearchPage() {
               </div>
             </div>
 
-            {/* Conteúdo: Se Vazio */}
             {businesses.length === 0 ? (
               <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2">
                 <p className="text-sm font-bold text-slate-700">
@@ -282,7 +278,6 @@ export default function SearchPage() {
         )}
       </main>
 
-      {/* Modal de Detalhes da Empresa */}
       <BusinessDetailsModal
         business={selectedBusiness}
         onClose={() => setSelectedBusiness(null)}

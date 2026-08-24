@@ -1,15 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/navbar';
-import { Settings, Server, Key, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Server, CheckCircle, ShieldCheck } from 'lucide-react';
 
 export default function SettingsPage() {
   const [provider, setProvider] = useState<string>('nominatim');
   const [saved, setSaved] = useState(false);
 
+  useEffect(() => {
+    const stored = localStorage.getItem('leadfinder_provider');
+    if (stored) {
+      setProvider(stored);
+    }
+  }, []);
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    localStorage.setItem('leadfinder_provider', provider);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -44,7 +52,7 @@ export default function SettingsPage() {
               </label>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <label
+                <div
                   onClick={() => setProvider('nominatim')}
                   className={`p-4 rounded-xl border cursor-pointer transition-all space-y-2 ${
                     provider === 'nominatim'
@@ -61,9 +69,9 @@ export default function SettingsPage() {
                   <p className="text-xs text-slate-500">
                     Nominatim + Overpass QL API. Sem custos e sem necessidade de API Key.
                   </p>
-                </label>
+                </div>
 
-                <label
+                <div
                   onClick={() => setProvider('google')}
                   className={`p-4 rounded-xl border cursor-pointer transition-all space-y-2 ${
                     provider === 'google'
@@ -78,11 +86,11 @@ export default function SettingsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    Places Text Search API. Cobertura global de alta precisão.
+                    Places Text Search API. Requer GOOGLE_MAPS_API_KEY no servidor/Vercel.
                   </p>
-                </label>
+                </div>
 
-                <label
+                <div
                   onClick={() => setProvider('mock')}
                   className={`p-4 rounded-xl border cursor-pointer transition-all space-y-2 ${
                     provider === 'mock'
@@ -99,22 +107,22 @@ export default function SettingsPage() {
                   <p className="text-xs text-slate-500">
                     Dados estáticos demonstrativos do Brasil para testes rápidos de UI.
                   </p>
-                </label>
+                </div>
               </div>
             </div>
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold uppercase text-slate-700">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Segurança das Credenciais
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Variáveis de Ambiente no Servidor (Vercel)
               </div>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Todas as chaves de API ficam mantidas exclusivamente no arquivo <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[11px]">.env</code> do servidor. Nenhuma credencial é exposta para o cliente web.
+                As credenciais da API fiquem protegidas nas Variáveis de Ambiente da Vercel (<code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[11px]">BUSINESS_PROVIDER</code> e <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[11px]">GOOGLE_MAPS_API_KEY</code>). Nenhuma chave é exposta no navegador.
               </p>
             </div>
 
             {saved && (
               <div className="p-3 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-600" /> Configurações salvas com sucesso!
+                <CheckCircle className="w-4 h-4 text-emerald-600" /> Preferência salva com sucesso!
               </div>
             )}
 
@@ -122,7 +130,7 @@ export default function SettingsPage() {
               type="submit"
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 transition-all"
             >
-              Salvar Preferências
+              Salvar Preferência
             </button>
           </form>
         </div>

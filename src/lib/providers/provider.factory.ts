@@ -24,14 +24,16 @@ export class ProviderFactory {
       case 'openstreetmap':
         return new NominatimOverpassProvider();
       case 'mock':
-      default:
         return new MockBusinessProvider();
+      default:
+        return hasGoogleKey ? new GooglePlacesProvider() : new NominatimOverpassProvider();
     }
   }
 
   /**
-   * Executa a busca através do provedor selecionado com fallback automático
-   * e indica de forma transparente ao frontend qual provedor respondeu.
+   * Executa a busca estritamente através do provedor selecionado.
+   * Se não houver dados no mapa para a localização, retorna 0 resultados ("Não encontrado"),
+   * sem gerar dados fictícios.
    */
   static async searchWithMeta(params: SearchBusinessesParams): Promise<SearchResponseResult> {
     const primaryProvider = ProviderFactory.getProvider(params.provider);
@@ -47,10 +49,10 @@ export class ProviderFactory {
     try {
       results = await primaryProvider.searchBusinesses(params);
     } catch (err) {
-      console.warn(`Erro no provedor ${primaryProvider.name}, acionando fallback:`, err);
+      console.warn(`Erro no provedor ${primaryProvider.name}:`, err);
     }
 
-    // Se o provedor primário não retornou resultados suficientes, tentar Nominatim se era Google ou vice-versa, ou acionar o gerador local B2B
+    // Se a busca primária no Google não retornou e o usuário aceita tentar Nominatim
     if (results.length === 0 && providerUsed === 'google') {
       try {
         const osmProvider = new NominatimOverpassProvider();
@@ -60,19 +62,13 @@ export class ProviderFactory {
           isFallback = true;
         }
       } catch (e) {
-        console.warn('Fallback OSM falhou:', e);
+        console.warn('Busca no OpenStreetMap retornou 0 resultados:', e);
       }
     }
 
-    // Se ainda assim tiver 0 resultados (cidade pequena sem POIs mapeados no OSM), usar gerador B2B contextual
-    if (results.length === 0) {
-      const mockProvider = new MockBusinessProvider();
-      results = await mockProvider.searchBusinesses(params);
-      providerUsed = 'mock';
-      isFallback = true;
-    }
+    // REGRA RÍGIDA: NUNCA acionar gerador fictício automaticamente se o provedor for real.
+    // Retorna exatamente a lista encontrada (ou vazia [0 resultados]).
 
-    // Deduplicação final obrigatória
     const deduplicated = deduplicateBusinesses(results);
 
     return {

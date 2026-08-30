@@ -294,11 +294,11 @@ export default function SearchPage() {
 
             {businesses.length === 0 ? (
               <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2">
-                <p className="text-sm font-bold text-slate-700">
-                  Nenhuma empresa encontrada dentro dos filtros selecionados.
+                <p className="text-base font-bold text-slate-800">
+                  Nenhuma empresa encontrada para esta localização e filtro.
                 </p>
-                <p className="text-xs text-slate-400">
-                  Tente expandir o raio de busca ou selecionar outra localização.
+                <p className="text-xs text-slate-500">
+                  O sistema está operando em modo de dados 100% reais e não encontrou estabelecimentos cadastrados para esta busca. Tente aumentar o raio de busca ou alterar a categoria.
                 </p>
               </div>
             ) : viewMode === 'list' ? (

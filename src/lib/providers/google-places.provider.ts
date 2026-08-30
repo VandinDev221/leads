@@ -3,17 +3,19 @@ import { Business, SearchBusinessesParams } from '@/types/business';
 import { calculateHaversineDistance } from './mock-business.provider';
 import { formatWhatsappUrl, formatPhoneDisplay } from '../utils/formatters';
 
+const DEFAULT_GOOGLE_API_KEY = 'AIzaSyAOOd4qYu4kzdhoR6R4PClIM1DEQbUG360';
+
 export class GooglePlacesProvider implements BusinessProvider {
   name = 'Google Places API';
   private apiKey: string;
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || process.env.GOOGLE_MAPS_API_KEY || '';
+    this.apiKey = apiKey || process.env.GOOGLE_MAPS_API_KEY || DEFAULT_GOOGLE_API_KEY;
   }
 
   async searchBusinesses(params: SearchBusinessesParams): Promise<Business[]> {
     if (!this.apiKey) {
-      console.warn('Google Places API key ausente. Utilize o MockProvider ou NominatimProvider.');
+      console.warn('Google Places API key ausente.');
       return [];
     }
 

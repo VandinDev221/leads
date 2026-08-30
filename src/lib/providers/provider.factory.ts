@@ -13,20 +13,18 @@ export interface SearchResponseResult {
 
 export class ProviderFactory {
   static getProvider(providerName?: string): BusinessProvider {
-    const hasGoogleKey = Boolean(process.env.GOOGLE_MAPS_API_KEY);
-    const selected = providerName || (hasGoogleKey ? 'google' : process.env.BUSINESS_PROVIDER || 'nominatim');
+    const selected = providerName || process.env.BUSINESS_PROVIDER || 'google';
 
     switch (selected.toLowerCase()) {
-      case 'google':
-        return new GooglePlacesProvider();
       case 'nominatim':
       case 'osm':
       case 'openstreetmap':
         return new NominatimOverpassProvider();
       case 'mock':
         return new MockBusinessProvider();
+      case 'google':
       default:
-        return hasGoogleKey ? new GooglePlacesProvider() : new NominatimOverpassProvider();
+        return new GooglePlacesProvider();
     }
   }
 
@@ -52,7 +50,7 @@ export class ProviderFactory {
       console.warn(`Erro no provedor ${primaryProvider.name}:`, err);
     }
 
-    // Se a busca primária no Google não retornou e o usuário aceita tentar Nominatim
+    // Se o provedor primário era Google e retornou 0, tenta Nominatim em tempo real
     if (results.length === 0 && providerUsed === 'google') {
       try {
         const osmProvider = new NominatimOverpassProvider();
@@ -66,7 +64,7 @@ export class ProviderFactory {
       }
     }
 
-    // REGRA RÍGIDA: NUNCA acionar gerador fictício automaticamente se o provedor for real.
+    // REGRA RÍGIDA DE PRODUÇÃO: NUNCA acionar gerador fictício.
     // Retorna exatamente a lista encontrada (ou vazia [0 resultados]).
 
     const deduplicated = deduplicateBusinesses(results);

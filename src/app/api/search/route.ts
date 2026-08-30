@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ProviderFactory } from '@/lib/providers/provider.factory';
 import { prisma } from '@/lib/db/prisma';
 import { SearchBusinessesParams } from '@/types/business';
+import { calculateLeadScore } from '@/lib/scoring/lead-score';
+import { analyzeLeadOpportunities } from '@/lib/opportunity/opportunity-analyzer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,34 +34,48 @@ export async function POST(req: NextRequest) {
         where: { externalId: { in: externalIds } },
       });
     } catch (e) {
-      console.warn('Alerta Prisma: Tabela SavedLead ainda não inicializada no DB local.', e);
+      console.warn('Alerta DB no search:', e);
     }
 
     const savedMap = new Map(savedLeads.map((s) => [s.externalId, s]));
 
     const mergedBusinesses = rawBusinesses.map((b) => {
       const saved = savedMap.get(b.externalId);
+      const scoreInfo = calculateLeadScore(b);
+      const opportunities = analyzeLeadOpportunities(b);
+
       if (saved) {
         return {
           ...b,
           id: saved.id,
           prospectStatus: saved.prospectStatus as any,
+          priority: saved.priority as any,
           notes: saved.notes || undefined,
           lastContactedAt: saved.lastContactedAt || undefined,
           nextContactAt: saved.nextContactAt || undefined,
           isFavorite: saved.isFavorite,
           isSaved: true,
+          leadScore: scoreInfo.totalScore,
+          opportunityScore: scoreInfo.opportunityScore,
+          scoreInfo,
+          opportunities,
         };
       }
+
       return {
         ...b,
         prospectStatus: 'NOVO' as const,
+        priority: 'MEDIUM' as const,
         isFavorite: false,
         isSaved: false,
+        leadScore: scoreInfo.totalScore,
+        opportunityScore: scoreInfo.opportunityScore,
+        scoreInfo,
+        opportunities,
       };
     });
 
-    // 3. Salvar no histórico de buscas
+    // 3. Gravar no histórico de buscas
     try {
       await prisma.searchHistory.create({
         data: {
@@ -70,7 +86,7 @@ export async function POST(req: NextRequest) {
         },
       });
     } catch (e) {
-      console.warn('Alerta Prisma: Falha ao gravar SearchHistory', e);
+      console.warn('Alerta DB ao gravar SearchHistory:', e);
     }
 
     return NextResponse.json({

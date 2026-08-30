@@ -21,29 +21,53 @@ export const STATUS_CONFIG: Record<
     text: 'text-slate-700',
     border: 'border-slate-300',
   },
+  QUALIFICADO: {
+    label: 'Qualificado',
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    border: 'border-blue-200',
+  },
   CONTATAR: {
-    label: 'Contatar',
+    label: 'A Contatar',
     bg: 'bg-amber-50',
     text: 'text-amber-700',
     border: 'border-amber-200',
   },
   CONTATADO: {
     label: 'Contatado',
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
-  },
-  RESPONDEU: {
-    label: 'Respondeu',
     bg: 'bg-indigo-50',
     text: 'text-indigo-700',
     border: 'border-indigo-200',
   },
-  INTERESSADO: {
-    label: 'Interessado',
+  RESPONDEU: {
+    label: 'Respondeu',
     bg: 'bg-purple-50',
     text: 'text-purple-700',
     border: 'border-purple-200',
+  },
+  INTERESSADO: {
+    label: 'Interessado',
+    bg: 'bg-pink-50',
+    text: 'text-pink-700',
+    border: 'border-pink-200',
+  },
+  PROPOSTA: {
+    label: 'Proposta',
+    bg: 'bg-yellow-50',
+    text: 'text-yellow-800',
+    border: 'border-yellow-300',
+  },
+  NEGOCIACAO: {
+    label: 'Negociação',
+    bg: 'bg-orange-50',
+    text: 'text-orange-800',
+    border: 'border-orange-300',
+  },
+  CLIENTE: {
+    label: 'Cliente',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    border: 'border-emerald-300',
   },
   SEM_INTERESSE: {
     label: 'Sem interesse',
@@ -51,11 +75,11 @@ export const STATUS_CONFIG: Record<
     text: 'text-red-700',
     border: 'border-red-200',
   },
-  CLIENTE: {
-    label: 'Cliente',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    border: 'border-emerald-300',
+  PERDIDO: {
+    label: 'Perdido',
+    bg: 'bg-slate-200',
+    text: 'text-slate-600',
+    border: 'border-slate-400',
   },
 };
 

@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Navbar } from '@/components/layout/navbar';
 import { SearchForm } from '@/components/search/search-form';
 import { BusinessTable } from '@/components/business/business-table';
 import { BusinessMap } from '@/components/map/business-map';
 import { BusinessDetailsModal } from '@/components/business/business-details-modal';
 import { Business, SearchBusinessesParams, ProspectStatus } from '@/types/business';
-import { List, Map as MapIcon, Download, Sparkles, AlertCircle } from 'lucide-react';
+import { List, Map as MapIcon, Download, Sparkles, AlertCircle, Info, Settings, Server } from 'lucide-react';
 
 export default function SearchPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -15,6 +16,8 @@ export default function SearchPage() {
   const [loadingMessage, setLoadingMessage] = useState('Buscando empresas...');
   const [hasSearched, setHasSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [providerUsed, setProviderUsed] = useState<'google' | 'nominatim' | 'mock'>('nominatim');
+  const [isFallback, setIsFallback] = useState(false);
 
   // Alternância de visualização [Lista] | [Mapa]
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -22,7 +25,7 @@ export default function SearchPage() {
   // Modal de Detalhes
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
 
-  // Executar busca inicial padrão ao abrir (Exemplo de utilização do prompt: Barbearias, São Luís - MA, 10 km)
+  // Executar busca inicial padrão ao abrir
   useEffect(() => {
     handleSearch({
       category: 'Barbearia',
@@ -34,7 +37,7 @@ export default function SearchPage() {
   const handleSearch = async (params: SearchBusinessesParams) => {
     setIsLoading(true);
     setErrorMessage(null);
-    setLoadingMessage('Consultando estabelecimentos próximos...');
+    setLoadingMessage('Consultando estabelecimentos na localização...');
 
     const storedProvider = typeof window !== 'undefined' ? localStorage.getItem('leadfinder_provider') : null;
     const effectiveParams = {
@@ -62,6 +65,8 @@ export default function SearchPage() {
       const data = await res.json();
       if (data.success) {
         setBusinesses(data.data || []);
+        setProviderUsed(data.providerUsed || 'nominatim');
+        setIsFallback(Boolean(data.isFallback));
       } else {
         setErrorMessage(data.error || 'Não foi possível realizar a busca. Tente novamente.');
       }
@@ -207,13 +212,48 @@ export default function SearchPage() {
 
         {!isLoading && hasSearched && (
           <div className="space-y-4">
+            {/* Banner Informativo de Provedores */}
+            {isFallback && (
+              <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 text-xs font-medium leading-relaxed">
+                <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-950">
+                    Provedor de Dados: Gerador Local B2B (Modo Demonstrativo)
+                  </p>
+                  <p>
+                    O OpenStreetMap (Gratuito) possui poucos registros mapeados nesta cidade. Para buscar **100% das empresas e dados reais do Google Maps** em qualquer cidade do Brasil, ative a **Google Places API** na página de <Link href="/settings" className="font-bold underline text-amber-950">Configurações</Link> ou adicione <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">GOOGLE_MAPS_API_KEY</code> no seu arquivo <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">.env</code>!
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-600" />
-                <h3 className="text-base font-bold text-slate-800">
-                  {businesses.length}{' '}
-                  {businesses.length === 1 ? 'empresa encontrada' : 'empresas encontradas'}
-                </h3>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-blue-600" />
+                  <h3 className="text-base font-bold text-slate-800">
+                    {businesses.length}{' '}
+                    {businesses.length === 1 ? 'empresa encontrada' : 'empresas encontradas'}
+                  </h3>
+                </div>
+
+                {/* Badge de Indicador do Provedor Ativo */}
+                <span
+                  className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full border flex items-center gap-1 ${
+                    providerUsed === 'google'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : providerUsed === 'nominatim'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-purple-50 text-purple-700 border-purple-200'
+                  }`}
+                >
+                  <Server className="w-3 h-3" />
+                  {providerUsed === 'google'
+                    ? 'Google Places API (Dados 100% Reais)'
+                    : providerUsed === 'nominatim'
+                    ? 'OpenStreetMap (Dados Reais do Mapa)'
+                    : 'Provedor Demonstrativo B2B'}
+                </span>
               </div>
 
               <div className="flex items-center gap-3">

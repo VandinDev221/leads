@@ -17,14 +17,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Executar a busca pelo ProviderFactory
-    const rawBusinesses = await ProviderFactory.search({
+    // 1. Executar a busca via ProviderFactory com indicação do provedor utilizado
+    const searchRes = await ProviderFactory.searchWithMeta({
       category,
       location,
       radiusKm: Number(radiusKm) || 10,
       filters,
       provider,
     });
+
+    const rawBusinesses = searchRes.businesses;
 
     // 2. Buscar leads já salvos no banco para mesclar status, favoritos e observações
     const externalIds = rawBusinesses.map((b) => b.externalId);
@@ -92,6 +94,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       total: mergedBusinesses.length,
+      providerUsed: searchRes.providerUsed,
+      isFallback: searchRes.isFallback,
       data: mergedBusinesses,
     });
   } catch (error: any) {

@@ -37,11 +37,34 @@ const PRESET_CATEGORIES = [
   'Advocacia',
 ];
 
+const PRESET_CITIES = [
+  'Santa Inês - MA',
+  'São Luís - MA',
+  'Imperatriz - MA',
+  'Açailândia - MA',
+  'Bacabal - MA',
+  'Caxias - MA',
+  'Balsas - MA',
+  'São Paulo - SP',
+  'Campinas - SP',
+  'Rio de Janeiro - RJ',
+  'Belo Horizonte - MG',
+  'Brasília - DF',
+  'Curitiba - PR',
+  'Porto Alegre - RS',
+  'Salvador - BA',
+  'Fortaleza - CE',
+  'Recife - PE',
+  'Goiânia - GO',
+  'Belém - PA',
+  'Manaus - AM',
+];
+
 const RADIUS_OPTIONS = [1, 2, 5, 10, 20, 30, 50];
 
 export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   const [category, setCategory] = useState('Barbearia');
-  const [location, setLocation] = useState('São Luís - MA');
+  const [location, setLocation] = useState('Santa Inês - MA');
   const [radiusKm, setRadiusKm] = useState<number>(10);
   const [customRadius, setCustomRadius] = useState<string>('');
   const [isCustomRadius, setIsCustomRadius] = useState(false);
@@ -69,7 +92,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
           setLocation(`Localização Atual (${lat.toFixed(3)}, ${lng.toFixed(3)})`);
         },
         (error) => {
-          alert('Não foi possível obter a geolocalização. Por favor, digite a cidade.');
+          alert('Não foi possível obter a geolocalização. Por favor, selecione uma cidade.');
         }
       );
     } else {
@@ -88,9 +111,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
       return;
     }
 
-    const effectiveRadius = isCustomRadius
-      ? Number(customRadius) || 10
-      : radiusKm;
+    const effectiveRadius = isCustomRadius ? Number(customRadius) || 10 : radiusKm;
 
     onSearch({
       category: category.trim(),
@@ -128,7 +149,8 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
                 ))}
               </datalist>
             </div>
-            {/* Quick Pills */}
+
+            {/* Quick Category Pills */}
             <div className="flex flex-wrap gap-1.5 mt-2">
               {PRESET_CATEGORIES.slice(0, 5).map((cat) => (
                 <button
@@ -147,11 +169,11 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
             </div>
           </div>
 
-          {/* Localização */}
+          {/* Localização (Seletor + Input com Autocomplete) */}
           <div className="md:col-span-4">
             <div className="flex justify-between items-center mb-1.5">
               <label className="block text-xs font-bold uppercase text-slate-500">
-                Localização
+                Localização / Cidade
               </label>
               <button
                 type="button"
@@ -165,15 +187,44 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
               <MapPin className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
+                list="city-suggestions"
                 value={location}
                 onChange={(e) => {
                   setLocation(e.target.value);
                   setUserCoords(null);
                 }}
-                placeholder="Ex: São Luís - MA, Av. Paulista SP"
+                placeholder="Selecione ou digite a cidade..."
                 className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 required
               />
+              <datalist id="city-suggestions">
+                {PRESET_CITIES.map((city) => (
+                  <option key={city} value={city} />
+                ))}
+              </datalist>
+            </div>
+
+            {/* Quick City Pills */}
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {['Santa Inês - MA', 'São Luís - MA', 'Imperatriz - MA', 'São Paulo - SP'].map(
+                (city) => (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => {
+                      setLocation(city);
+                      setUserCoords(null);
+                    }}
+                    className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium transition-all ${
+                      location.toLowerCase() === city.toLowerCase()
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {city.split('-')[0].trim()}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
